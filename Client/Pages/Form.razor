@@ -1,0 +1,57 @@
+﻿@page "/form"
+@using SingleGridFormWebApp.Shared
+@using System.Net.Http
+@inject HttpClient Http
+
+<h3>Form</h3>
+
+<div class="btn"><a href="addform" class="btn btn-primary">Add Form</a></div>
+
+
+@if (forms == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Edit/Delete</th>
+                <th>View Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var form in forms)
+            {
+
+                string editAddress = $"EditForm/{form.Id}";
+                string dataAddress = $"Rows/{form.Id}";
+            <tr>
+                <td>@form.Name</td>
+                <td>
+                    <a class="" href="@editAddress">Edit/Delete</a>
+                </td>
+                <td>
+                    <a class="" href="@dataAddress">View Data</a>
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private SingleGridFormWebApp.Shared.Form[] forms;
+
+    protected override async Task OnInitializedAsync()
+    {
+        forms = await Http.GetFromJsonAsync<SingleGridFormWebApp.Shared.Form[]>("api/Forms");
+    }
+
+    private void DeleteForm(int id)
+        {
+
+        }
+}

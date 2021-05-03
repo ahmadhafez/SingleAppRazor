@@ -1,0 +1,109 @@
+﻿@page "/editform/{Id:int}"
+@using System.Net.Http
+@inject HttpClient Http
+@inject NavigationManager NavManager
+<h3>Edit Form</h3>
+@if (form != null)
+{
+    <label>
+        Name:
+        <input @bind-value="form.Name" />
+    </label>
+    <div><button class="btn btn-primary" @onclick="@EditItem">Edit</button></div>
+
+    @if (form.Columns != null)
+    {
+        <h4>Columns</h4>
+        @foreach (var col in form.Columns)
+        {
+            <div>
+                <label>
+                    <span>Column Name:</span>
+                    <span><input @bind="col.Name" /></span>
+                    <span><button class="btn btn-primary" @onclick="() => SaveColumn(col.Id,col)">Edit</button></span>
+                    <span><button class="btn btn-primary" @onclick="() => DeleteColumn(col.Id)">Delete</button></span>
+                </label>
+            </div>
+        }
+
+        @for (int i = form.Columns.Count(); i <= 10; i++)
+        {
+            <div>
+                <label>
+                    <span>Column Name:</span>
+                    <span><input value="" @onchange="e => InsertValueChange(i,e)" /></span>
+                    <span><button class="btn btn-primary" @onclick="() => InsertColumn(i)">Insert</button></span>
+                </label>
+            </div>
+        }
+    }
+
+}
+else
+{
+    <div>Form does not exist any more..</div>
+}
+
+<div><button class="btn btn-primary" @onclick="@DeleteItem">Delete</button></div>
+
+
+<div class="btn"><a href="form" class="btn btn-primary">Back</a></div>
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    public int columnIdSave = -1;
+    SingleGridFormWebApp.Shared.Form form;
+
+    Dictionary<int, string> newColumns = new Dictionary<int, string>();
+
+    private async Task DeleteItem()
+    {
+        await Http.DeleteAsync($"api/Forms/{Id}");
+        NavManager.NavigateTo("form");
+    }
+
+    private async Task EditItem()
+    {
+        await Http.PutAsJsonAsync($"api/Forms/{Id}", form);
+        NavManager.NavigateTo("form");
+    }
+
+    private async Task SaveColumn(int id, SingleGridFormWebApp.Shared.Column column)
+    {
+        await Http.PutAsJsonAsync($"api/Columns/{Id}", column);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        form = await Http.GetFromJsonAsync<SingleGridFormWebApp.Shared.Form>($"api/Forms/{Id}");
+    }
+
+    private void InsertValueChange(int i, ChangeEventArgs arg)
+
+    {
+        if (!newColumns.ContainsKey(i))
+        {
+            newColumns.Add(i, arg.Value.ToString());
+        }
+        else
+        {
+            newColumns[i] = arg.Value.ToString();
+        }
+
+    }
+
+    private async Task InsertColumn(int index)
+    {
+        if (newColumns.ContainsKey(index))
+        {
+            await Http.PostAsJsonAsync($"api/Columns/{form.Id}",
+                new SingleGridFormWebApp.Shared.Column() { Name = newColumns.GetValueOrDefault(index) });
+
+        }
+    }
+    private async Task DeleteColumn(int id)
+    {
+        await Http.DeleteAsync($"api/Columns/{id}");
+    }
+}

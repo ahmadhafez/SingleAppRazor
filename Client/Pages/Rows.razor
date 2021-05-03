@@ -1,0 +1,149 @@
+﻿@page "/rows/{Id:int}"
+
+@using System.Net.Http
+@using SingleGridFormWebApp.Shared
+@inject HttpClient Http
+@inject NavigationManager NavManager
+
+<h3>Rows</h3>
+
+@if (form != null && form.Columns != null)
+{
+    <table id="data-from" class="table">
+        <thead>
+            <tr>
+                @foreach (var col in form.Columns)
+                {
+                    <th>@col.Name</th>
+                }
+                <th>Insert/Edit</th>
+                <th>Delete(id applicable)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (form.Rows != null)
+            {
+                @foreach (var row in form.Rows)
+                {
+            <tr>
+                @foreach (var col in form.Columns)
+                {
+                    <td><input value="@rowData.FirstOrDefault(p => p.Column.Id == col.Id && p.Row.Id == row.Id)?.Value" @onchange="e => onChange(col.Id , row.Id, args: e)" /></td>
+                }
+                <td><button @onclick="() => SaveRowDataRow(row.Id)"> Edit</button></td>
+                <td><button @onclick="() => DeleteRowDataRow(row.Id)">Delete</button></td>
+            </tr>
+
+                }
+                
+                @for (int i = form.Rows.Count(); i <= 5; i++)
+                {
+                    <tr>
+                        @foreach (var col in form.Columns)
+                        {
+                            <td><input value="" @onchange="e => onChangeSave(i, col , args: e)" /></td>
+                        }
+                        <td><button @onclick="e => InserRowDataRow(i)"> Insert</button></td>
+                        <td><input type="checkbox" hidden="hidden" /></td>
+                    </tr>
+                }
+               
+            }
+        </tbody>
+    </table>
+
+}
+else
+{
+    <div>Nothing to display ..</div>
+}
+
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    SingleGridFormWebApp.Shared.Form form;
+    IEnumerable<RowData> rowData;
+    //Dictionary<int, KeyValuePair<Column, string>> newRowDataDictionary = new Dictionary<int, KeyValuePair<Column, string>>();
+    List<RowData> newRowDataList = new List<RowData>();
+    Dictionary<int, Row> newRowsDictionary = new Dictionary<int, Row>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        form = await Http.GetFromJsonAsync<SingleGridFormWebApp.Shared.Form>($"api/Forms/{Id}");
+        rowData = await Http.GetFromJsonAsync<IEnumerable<RowData>>($"api/RowData/{Id}");
+    }
+
+
+    private async Task SaveRowDataRow(int rowID)
+    {
+        var result = await Http.PutAsJsonAsync($"api/RowData", rowData.Where(p => p.Row.Id == rowID));
+        if (result.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            this.StateHasChanged();
+        }
+    }
+
+    private void onChange(int colID, int rowID, Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        rowData.Single(p => p.Column.Id == colID && p.Row.Id == rowID).Value = args.Value.ToString();
+    }
+
+    private void onChangeSave(int index, Column col, Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        Row row;
+        if (newRowsDictionary.ContainsKey(index))
+        {
+            row = newRowsDictionary.GetValueOrDefault(index);
+        }
+        else
+        {
+            row = new Row();
+            newRowsDictionary.Add(index, row);
+        }
+        
+        newRowDataList.Add(
+            new RowData()
+            {
+                Form = form,
+                Column = col,
+                Row = row,
+                Value = args.Value.ToString()
+            });
+        //newRowDataDictionary.Add(index, new KeyValuePair<Column,string>(col, args.Value.ToString()));
+
+    }
+
+    private async Task InserRowDataRow(int index)
+    {
+        //Row row = new Row();
+        //var values = newRowDataDictionary.GetValueOrDefault(index);
+        //var rowData = new SingleGridFormWebApp.Shared.RowData()
+        //{
+        //    Form = form,
+        //    Row = row,
+        //    Column = values.Key,
+        //    Value = values.Value
+        //};
+
+        Row row = newRowsDictionary.GetValueOrDefault(index);
+
+        var result = await Http.PostAsJsonAsync("api/RowData", newRowDataList.Where(p => p.Row == row));
+
+        if (result.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            this.StateHasChanged();
+        }
+    }
+
+    private async Task DeleteRowDataRow(int rowID)
+    {
+        var result = await Http.DeleteAsync($"api/RowData/{rowID}");
+        if (result.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            this.StateHasChanged();
+        }
+    }
+}

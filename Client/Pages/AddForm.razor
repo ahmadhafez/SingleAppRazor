@@ -1,0 +1,131 @@
+﻿@page "/addform"
+@using System.Net.Http
+@using SingleGridFormWebApp.Shared
+@inject HttpClient Http
+@inject NavigationManager NavManager
+
+<h3>Add Form</h3>
+<div>
+    <label for="form-name">Name</label>
+    <input id="form-name" @bind="name" />
+</div>
+<div>
+    <div><h4>Columns</h4></div>
+
+    <div>
+
+        <div id="div-column-1">
+            <label for="form-column-1">Column 1</label>
+
+            <input id="form-column-1" @bind="colName1" />
+        </div>
+        <div id="div-column-2">
+            <label for="form-column-2">Column 2</label>
+
+            <input id="form-column-2" @bind="colName2" />
+        </div>
+        <div id="div-column-3">
+            <label for="form-column-3">Column 3</label>
+
+            <input id="form-column-3" @bind="colName3" />
+        </div>
+        <div id="div-column-4">
+            <label for="form-column-4">Column 4</label>
+
+            <input id="form-column-4" @bind="colName4" />
+        </div>
+        <div id="div-column-5">
+            <label for="form-column-5">Column 5</label>
+
+            <input id="form-column-5" @bind="colName5" />
+        </div>
+        <div id="div-column-6">
+            <label for="form-column-6">Column 6</label>
+
+            <input id="form-column-6" @bind="colName6" />
+        </div>
+        <div id="div-column-7">
+            <label for="form-column-7">Column 7</label>
+
+            <input id="form-column-7" @bind="colName7" />
+        </div>
+        <div id="div-column-8">
+            <label for="form-column-8">Column 8</label>
+
+            <input id="form-column-8" @bind="colName8" />
+        </div>
+        <div id="div-column-9">
+            <label for="form-column-9">Column 9</label>
+
+            <input id="form-column-9" @bind="colName9" />
+        </div>
+        <div id="div-column-10">
+            <label for="form-column-10">Column 10</label>
+
+            <input id="form-column-10" @bind="colName10" />
+        </div>
+
+    </div>
+</div>
+
+<div>
+
+    <button class="btn-primary" @onclick="@AddItem">Save</button>
+</div>
+<div><a href="form" class="btn btn-secondary">Back</a></div>
+@code {
+    public string name;
+    public List<Column> columns = new List<Column>();
+    public string colName1, colName2, colName3, colName4, colName5, colName6, colName7, colName8, colName9, colName10 = null;
+    public int columnCount = 0;
+    private async Task AddItem()
+    {
+        var form = new SingleGridFormWebApp.Shared.Form() { Name = name };
+
+        if (!string.IsNullOrEmpty(colName1))
+        {
+            columns.Add(new Column() { Name = colName1 });
+        }
+        if (!string.IsNullOrEmpty(colName2))
+        {
+            columns.Add(new Column() { Name = colName2 });
+        }
+        if (!string.IsNullOrEmpty(colName3))
+        {
+            columns.Add(new Column() { Name = colName3 });
+        }
+        if (!string.IsNullOrEmpty(colName4))
+        {
+            columns.Add(new Column() { Name = colName4 });
+        }
+        if (!string.IsNullOrEmpty(colName5))
+        {
+            columns.Add(new Column() { Name = colName5 });
+        }
+        if (!string.IsNullOrEmpty(colName6))
+        {
+            columns.Add(new Column() { Name = colName6 });
+        }
+        if (!string.IsNullOrEmpty(colName7))
+        {
+            columns.Add(new Column() { Name = colName7 });
+        }
+        if (!string.IsNullOrEmpty(colName8))
+        {
+            columns.Add(new Column() { Name = colName8 });
+        }
+        if (!string.IsNullOrEmpty(colName9))
+        {
+            columns.Add(new Column() { Name = colName9 });
+        }
+        if (!string.IsNullOrEmpty(colName10))
+        {
+            columns.Add(new Column() { Name = colName10 });
+        }
+
+        form.Columns = columns;
+        await Http.PostAsJsonAsync($"api/Forms", form);
+        NavManager.NavigateTo("form");
+    }
+
+}
